@@ -1,0 +1,13 @@
+{
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "numReplicas": 1,
+    "startCommand": "gunicorn -w 2 -b 0.0.0.0:$PORT app:app",
+    "env": {
+      "FLASK_ENV": "production",
+      "PYTHON_VERSION": "3.13.0"
+    }
+  }
+}
