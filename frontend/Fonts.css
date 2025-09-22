@@ -1,0 +1,17 @@
+/* Using Google Fonts import */
+@import url('https://fonts.googleapis.com/css2?family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Jersey+10&display=swap');
+
+:root {
+  --font-rethink-sans: "Rethink Sans", sans-serif;
+  --font-jersey-10: "Jersey 10", sans-serif;
+}
+
+/* Utility classes for flexibility */
+.font-rethink-sans {
+  font-family: var(--font-rethink-sans);
+}
+
+.font-jersey-10 {
+  font-family: var(--font-jersey-10);
+}
