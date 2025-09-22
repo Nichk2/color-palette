@@ -4,6 +4,11 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+  inputs:
+    vite_api_url:
+      description: "Optional API base URL to inject at build (VITE_API_URL)"
+      required: false
+      default: ""
 
 permissions:
   contents: read
@@ -36,6 +41,8 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          VITE_API_URL: ${{ inputs.vite_api_url !=  && inputs.vite_api_url || vars.VITE_API_URL }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

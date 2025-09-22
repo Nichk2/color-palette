@@ -90,3 +90,4 @@ PRs and issues welcome. Please run lint/build before submitting.
 
 ## 📣 Acknowledgements
 Built with React, Vite, and Flask. SVG assets included in `frontend/src/images/`.
+\n\n[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)\n\n> After clicking, pick this repo. Render will use `render.yaml`.\n
