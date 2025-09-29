@@ -7,12 +7,12 @@ import Flask from '../src/images/The Flask.svg'
 import Bucket from '../src/images/Bucket.svg'
  
 
-// Image URLs
-const imgEllipse119 = "http://localhost:3845/assets/a8f85b617f4645a7d0e91d46bdead2196c7847e0.png";
-const imgGroup = "http://localhost:3845/assets/6ec7be73da6c9781e19b45b209fa4ea1a73b1d98.svg";
-const imgGroup1 = "http://localhost:3845/assets/8b80ed74ea5f84b55b527a331bafd984531ce304.svg";
-const imgGroup2 = "http://localhost:3845/assets/d40a81b80ff63886adf8ce6f53964a022e2246b6.svg";
-const imgGroup3 = "http://localhost:3845/assets/85ba3731676873855e31c714c755b599db87da41.svg";
+// Image URLs - commented out unused variables
+// const imgEllipse119 = "http://localhost:3845/assets/a8f85b617f4645a7d0e91d46bdead2196c7847e0.png";
+// const imgGroup = "http://localhost:3845/assets/6ec7be73da6c9781e19b45b209fa4ea1a73b1d98.svg";
+// const imgGroup1 = "http://localhost:3845/assets/8b80ed74ea5f84b55b527a331bafd984531ce304.svg";
+// const imgGroup2 = "http://localhost:3845/assets/d40a81b80ff63886adf8ce6f53964a022e2246b6.svg";
+// const imgGroup3 = "http://localhost:3845/assets/85ba3731676873855e31c714c755b599db87da41.svg";
 
 
 // Custom hook for floating animation

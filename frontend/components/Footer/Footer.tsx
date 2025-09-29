@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 const Footer = () => {
@@ -26,7 +26,7 @@ const Footer = () => {
       x: 0,
       scale: 1,
       transition: {
-        type: "spring",
+        type: "spring" as const,
         damping: 15,
         stiffness: 100,
         duration: 0.6
@@ -38,7 +38,7 @@ const Footer = () => {
       scale: 0.8,
       transition: {
         duration: 0.5,
-        ease: "easeIn"
+        ease: "easeIn" as const
       }
     }
   }

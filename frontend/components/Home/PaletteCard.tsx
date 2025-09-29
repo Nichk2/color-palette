@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Copy, Heart, HeartOff } from "lucide-react";
+import { Check, Copy, Heart } from "lucide-react";
 import type { PaletteCardProps } from "../../types";
 import { ColorSquare } from "./ColorSquare";
 
@@ -12,7 +12,6 @@ export const PaletteCard: React.FC<PaletteCardProps> = ({
   isFavorite = false
 }) => {
   const [copiedAll, setCopiedAll] = useState(false);
-  const [showActions, setShowActions] = useState(false);
 
   const copyAllColors = () => {
     const colorsString = palette.colors.join(", ");
@@ -37,8 +36,8 @@ export const PaletteCard: React.FC<PaletteCardProps> = ({
   return (
     <div 
       className="bg-white rounded-xl sm:rounded-2xl md:rounded-3xl p-4 sm:p-6 border border-[#E4E4E4] relative group"
-      onMouseEnter={() => setShowActions(true)}
-      onMouseLeave={() => setShowActions(false)}
+      onMouseEnter={() => {}}
+      onMouseLeave={() => {}}
     >
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 gap-2 sm:gap-0">
         <div className="flex-1">

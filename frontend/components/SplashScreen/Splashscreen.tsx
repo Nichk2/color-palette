@@ -1,4 +1,4 @@
-import { motion, Variants, AnimatePresence } from 'framer-motion';
+import { motion, type Variants, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 

@@ -38,7 +38,7 @@ export const downloadElementAsImage = async (
     grid.style.gap = '16px';
     grid.style.marginBottom = '20px';
     
-    colorElements.forEach((colorEl, index) => {
+    colorElements.forEach((colorEl) => {
       const bgColor = colorEl.getAttribute('style')?.match(/background-color:\s*(#[0-9a-fA-F]{3,6}|[a-zA-Z]+)/i);
       const colorValue = bgColor ? bgColor[1] : '#D9D9D9';
       
