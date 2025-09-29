@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [react(),
     tailwindcss()
   ],
-  base: '/colorP/',
+  base: '/color-palette/',
   build: {
     outDir: 'dist',
     sourcemap: false,
