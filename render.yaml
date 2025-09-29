@@ -2,13 +2,9 @@ services:
   - type: web
     name: colorp-backend
     env: python
-    plan: free
     buildCommand: pip install -r backend/requirements.txt
-    startCommand: gunicorn -k uvicorn.workers.UvicornWorker -w 2 -b 0.0.0.0:$PORT app:app
-    rootDir: backend
-    autoDeploy: true
+    startCommand: cd backend && python app.py
     envVars:
-      - key: FLASK_ENV
-        value: production
       - key: PYTHON_VERSION
-        value: 3.13.0
+        value: 3.11.0
+    healthCheckPath: /health

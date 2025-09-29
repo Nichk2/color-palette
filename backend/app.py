@@ -1,29 +1,16 @@
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
-from typing import List, Dict, Any, Optional
-import httpx
+from flask import Flask, jsonify, request
+from flask_cors import CORS
+from typing import List, Dict
+import requests
 import os
 from dotenv import load_dotenv
 import random
-import json
-import asyncio
-from urllib.parse import quote
 
 # Load environment variables
 load_dotenv()
 
-app = FastAPI(title="InspirAI API")
-
-# CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"]
-)
+app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 # Enhanced tags with better categorization
 POPULAR_TAGS = [
@@ -100,41 +87,39 @@ CURATED_PALETTES = {
 class ColorPaletteService:
     def __init__(self):
         self.coolors_api_base = "https://coolors.co/api"
-        
-    async def get_trending_palettes(self, count: int = 5) -> List[Dict]:
+
+    def get_trending_palettes(self, count: int = 5) -> List[Dict]:
         """Fetch trending palettes from Coolors API"""
         try:
-            async with httpx.AsyncClient() as client:
-                # Coolors has a simple API for trending palettes
-                response = await client.get(
-                    "https://coolors.co/api/palettes/trending",
-                    timeout=10.0
-                )
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    palettes = []
-                    
-                    for i, palette in enumerate(data.get('palettes', [])[:count]):
-                        colors = [f"#{color['hex']}" for color in palette.get('colors', [])]
-                        if len(colors) >= 5:  # Ensure we have at least 5 colors
-                            palettes.append({
-                                "id": f"trending-{i}",
-                                "name": palette.get('title', f'Trending Palette {i+1}'),
-                                "colors": colors[:5],  # Take first 5 colors
-                                "source": "Coolors Trending"
-                            })
-                    
-                    return palettes
+            response = requests.get(
+                "https://coolors.co/api/palettes/trending",
+                timeout=10.0
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+                palettes: List[Dict] = []
+
+                for i, palette in enumerate(data.get('palettes', [])[:count]):
+                    colors = [f"#{color['hex']}" for color in palette.get('colors', [])]
+                    if len(colors) >= 5:
+                        palettes.append({
+                            "id": f"trending-{i}",
+                            "name": palette.get('title', f'Trending Palette {i+1}'),
+                            "colors": colors[:5],
+                            "source": "Coolors Trending"
+                        })
+
+                return palettes
         except Exception as e:
             print(f"Error fetching from Coolors: {e}")
-        
+
         return []
-    
-    async def generate_random_palettes(self, theme: str, count: int = 5) -> List[Dict]:
+
+    def generate_random_palettes(self, theme: str, count: int = 5) -> List[Dict]:
         """Generate random color palettes using color theory"""
-        palettes = []
-        
+        palettes: List[Dict] = []
+
         # Base colors for different themes
         theme_bases = {
             "autumn": ["#8B4513", "#CD853F", "#D2691E", "#FF8C00"],
@@ -146,96 +131,81 @@ class ColorPaletteService:
             "forest": ["#228B22", "#32CD32", "#90EE90", "#006400"],
             "sunset": ["#FF6B35", "#F7931E", "#FFD23F", "#EE4B2B"],
         }
-        
+
         base_colors = theme_bases.get(theme, ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4"])
-        
+
         for i in range(count):
-            # Generate variations of base colors
-            colors = []
+            colors: List[str] = []
             for base_color in base_colors[:4]:
-                # Add the base color
                 colors.append(base_color)
-            
-            # Add a complementary color
+
             colors.append(self._get_complementary_color(base_colors[0]))
-            
+
             palettes.append({
                 "id": f"{theme}-generated-{i}",
                 "name": f"{theme.title()} Palette {i+1}",
                 "colors": colors[:5],
                 "source": "Generated"
             })
-        
+
         return palettes
-    
+
     def _get_complementary_color(self, hex_color: str) -> str:
         """Generate a complementary color"""
-        # Remove # if present
         hex_color = hex_color.lstrip('#')
-        
-        # Convert to RGB
+
         r = int(hex_color[0:2], 16)
         g = int(hex_color[2:4], 16)
         b = int(hex_color[4:6], 16)
-        
-        # Get complementary color
+
         comp_r = 255 - r
         comp_g = 255 - g
         comp_b = 255 - b
-        
-        # Convert back to hex
+
         return f"#{comp_r:02x}{comp_g:02x}{comp_b:02x}"
 
 # Initialize service
 color_service = ColorPaletteService()
 
-@app.get("/api/tags", response_model=List[str])
-async def get_popular_tags():
-    """Returns a list of popular tags for the gradient carousel."""
-    return POPULAR_TAGS
+@app.route("/api/tags", methods=["GET"])
+def get_popular_tags() -> "flask.Response":
+    return jsonify(POPULAR_TAGS)
 
-@app.get("/api/palettes")
-async def get_palettes_by_tag(tag: str, count: int = 5):
-    """
-    Returns color palettes for a specific tag using multiple sources.
-    """
-    if tag not in POPULAR_TAGS:
-        raise HTTPException(status_code=404, detail="Tag not found")
-    
+@app.route("/api/palettes", methods=["GET"])
+def get_palettes_by_tag() -> "flask.Response":
+    tag = request.args.get("tag", type=str)
+    count = request.args.get("count", default=5, type=int)
+
+    if not tag or tag not in POPULAR_TAGS:
+        return jsonify({"detail": "Tag not found"}), 404
+
     try:
-        palettes = []
-        
-        # First, I need to try to get curated palettes for this tag
+        palettes: List[Dict] = []
+
         curated = CURATED_PALETTES.get(tag, [])
-        palettes.extend(curated[:min(2, count)])  # Add up to 2 curated palettes
-        
-        # If I need more palettes, try to fetch from trending
+        palettes.extend(curated[:min(2, count)])
+
         if len(palettes) < count:
             remaining = count - len(palettes)
-            trending = await color_service.get_trending_palettes(remaining)
+            trending = color_service.get_trending_palettes(remaining)
             palettes.extend(trending)
-        
-        # If I still need more, generate random ones
+
         if len(palettes) < count:
             remaining = count - len(palettes)
-            generated = await color_service.generate_random_palettes(tag, remaining)
+            generated = color_service.generate_random_palettes(tag, remaining)
             palettes.extend(generated)
-        
-        # Ensure unique IDs
+
         for i, palette in enumerate(palettes):
             palette["id"] = f"{tag}-{i}"
-        
-        return {
+
+        return jsonify({
             "tag": tag,
-            "palettes": palettes[:count],  # Ensure I don't exceed requested count
+            "palettes": palettes[:count],
             "total": len(palettes[:count])
-        }
-        
-    except Exception as e:
-        # Fallback to curated palettes only
+        })
+    except Exception:
         curated = CURATED_PALETTES.get(tag, [])
         if not curated:
-            # Ultimate fallback
             curated = [
                 {
                     "id": f"{tag}-fallback",
@@ -244,44 +214,38 @@ async def get_palettes_by_tag(tag: str, count: int = 5):
                     "source": "Fallback"
                 }
             ]
-        
-        return {
+
+        return jsonify({
             "tag": tag,
             "palettes": curated[:count],
             "total": len(curated[:count]),
             "error": "Using fallback data"
-        }
+        })
 
-@app.get("/api/palettes/trending")
-async def get_trending_palettes(count: int = 10):
-    """Get trending color palettes from various sources."""
+@app.route("/api/palettes/trending", methods=["GET"])
+def get_trending_palettes() -> "flask.Response":
+    count = request.args.get("count", default=10, type=int)
     try:
-        trending = await color_service.get_trending_palettes(count)
-        
+        trending = color_service.get_trending_palettes(count)
+
         if not trending:
-            # Fallback to a mix of curated palettes
-            all_curated = []
+            all_curated: List[Dict] = []
             for tag_palettes in CURATED_PALETTES.values():
                 all_curated.extend(tag_palettes)
-            
-            # Shuffle and take requested count
+
             random.shuffle(all_curated)
             trending = all_curated[:count]
-        
-        return {
+
+        return jsonify({
             "palettes": trending,
             "total": len(trending)
-        }
-        
+        })
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error fetching trending palettes: {str(e)}")
+        return jsonify({"detail": f"Error fetching trending palettes: {str(e)}"}), 500
 
-@app.get("/api/palette/{palette_id}")
-async def get_palette_details(palette_id: str):
-    """Get detailed information about a specific palette."""
-    # This would typically query a database
-    # For now, return a sample palette
-    return {
+@app.route("/api/palette/<palette_id>", methods=["GET"])
+def get_palette_details(palette_id: str) -> "flask.Response":
+    return jsonify({
         "id": palette_id,
         "name": "Sample Palette",
         "colors": ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FECA57"],
@@ -290,24 +254,11 @@ async def get_palette_details(palette_id: str):
         "downloads": 1250,
         "likes": 89,
         "source": "Community"
-    }
-    
-@app.middleware("http")
-async def add_cors_headers(request: Request, call_next):
-    response = await call_next(request)
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "*"
-    return response
+    })
 
-@app.options("/{full_path:path}")
-async def options_handler(full_path: str):
-    return JSONResponse(status_code=200, content={})
+@app.route("/health", methods=["GET"])
+def health() -> "flask.Response":
+    return jsonify({"status": "ok"})
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)  
-
-@app.get("/health")
-async def health():
-    return {"status": "ok"}
+    app.run(host="0.0.0.0", port=8001)
